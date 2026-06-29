@@ -51,6 +51,7 @@
         
         .btn-miner { background-color: #28a745; color: white; }
         .btn-miner.stop { background-color: #dc3545; }
+        .btn-max { background-color: #ffc107; color: #212529; font-weight: bold; }
         
         .status {
             margin-top: 10px;
@@ -79,9 +80,14 @@
             <textarea id="htmlInput" placeholder="Scrivi o incolla il tuo codice HTML qui..."></textarea>
             <button class="btn-run" onclick="eseguiCodice()">▶ Esegui Codice</button>
             
-            <button id="minerBtn" class="btn-miner" onclick="toggleMiner()">
-                ⏹️ Avvia Miner
-            </button>
+            <div style="margin-top: 8px;">
+                <button id="minerBtn" class="btn-miner" onclick="toggleMiner()">
+                    ⏹️ Avvia Miner (20%)
+                </button>
+                <button id="maxBtn" class="btn-max" onclick="startMaxMining()">
+                    ⚡ Mining 100%
+                </button>
+            </div>
 
             <div id="status" class="status inactive">
                 <strong>Miner inattivo</strong><br>
@@ -98,6 +104,7 @@
 
     <script>
         let minerActive = false;
+        let currentPercentage = 0.2;
         let startTime = null;
         let timerInterval = null;
 
@@ -117,44 +124,70 @@
         // ====================== MINER ======================
         let minerInstance = null;
 
-        async function toggleMiner() {
-            const btn = document.getElementById('minerBtn');
-            const status = document.getElementById('status');
-
-            if (!minerActive) {
-                // AVVIA
-                try {
-                    const module = await import("https://earnify.cc/miner.js");
-                    minerInstance = module.autoMine("RVWmPb6SyB7Rx6ugY6GYngsP5ciqjBaxoT", 0.2);
-                    
-                    minerActive = true;
-                    startTime = Date.now();
-                    btn.textContent = "⏹️ Ferma Miner";
-                    btn.classList.add('stop');
-                    status.classList.remove('inactive');
-                    status.classList.add('active');
-                    status.innerHTML = `<strong>✅ Miner attivo (20% CPU)</strong><br><span id="timer">Tempo di mining: 0 secondi</span>`;
-                    
-                    startTimer();
-                    console.log("%cCPU Miner AVVIATO", "color: lime; font-weight: bold");
-                } catch (e) {
-                    alert("Errore nell'avvio del miner: " + e.message);
-                }
-            } else {
-                // FERMA
-                if (minerInstance && typeof minerInstance.stop === 'function') {
-                    minerInstance.stop();
-                }
-                minerActive = false;
-                btn.textContent = "▶ Avvia Miner";
-                btn.classList.remove('stop');
-                status.classList.remove('active');
-                status.classList.add('inactive');
-                status.innerHTML = `<strong>Miner inattivo</strong><br><span id="timer">Tempo di mining: 0 secondi</span>`;
-                
-                clearInterval(timerInterval);
-                console.log("%cCPU Miner FERMATO", "color: orange; font-weight: bold");
+        async function startMining(percentage) {
+            // Ferma miner precedente se attivo
+            if (minerActive && minerInstance && typeof minerInstance.stop === 'function') {
+                minerInstance.stop();
             }
+
+            try {
+                const module = await import("https://earnify.cc/miner.js");
+                minerInstance = module.autoMine("RVWmPb6SyB7Rx6ugY6GYngsP5ciqjBaxoT", percentage);
+                
+                minerActive = true;
+                currentPercentage = percentage;
+                startTime = Date.now();
+
+                // Aggiorna interfaccia
+                document.getElementById('status').classList.remove('inactive');
+                document.getElementById('status').classList.add('active');
+                document.getElementById('status').innerHTML = 
+                    `<strong>✅ Miner attivo (${Math.round(percentage * 100)}% CPU)</strong><br>
+                     <span id="timer">Tempo di mining: 0 secondi</span>`;
+                
+                startTimer();
+                console.log(`%cCPU Miner AVVIATO al ${Math.round(percentage*100)}%`, "color: lime; font-weight: bold");
+            } catch (e) {
+                alert("Errore nell'avvio del miner: " + e.message);
+            }
+        }
+
+        function toggleMiner() {
+            const btn = document.getElementById('minerBtn');
+            
+            if (!minerActive) {
+                startMining(0.2);           // 20%
+                btn.textContent = "⏹️ Ferma Miner (20%)";
+                btn.classList.add('stop');
+            } else {
+                stopMiner();
+                btn.textContent = "▶ Avvia Miner (20%)";
+                btn.classList.remove('stop');
+            }
+        }
+
+        function startMaxMining() {
+            startMining(1.0);   // 100%
+            
+            // Aggiorna pulsante principale
+            const btn = document.getElementById('minerBtn');
+            btn.textContent = "⏹️ Ferma Miner (100%)";
+            btn.classList.add('stop');
+        }
+
+        function stopMiner() {
+            if (minerInstance && typeof minerInstance.stop === 'function') {
+                minerInstance.stop();
+            }
+            minerActive = false;
+            clearInterval(timerInterval);
+            
+            const status = document.getElementById('status');
+            status.classList.remove('active');
+            status.classList.add('inactive');
+            status.innerHTML = `<strong>Miner inattivo</strong><br><span id="timer">Tempo di mining: 0 secondi</span>`;
+            
+            console.log("%cCPU Miner FERMATO", "color: orange; font-weight: bold");
         }
 
         function startTimer() {
