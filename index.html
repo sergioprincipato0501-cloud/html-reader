@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML Previewer</title>
+    <title>HTML Previewer + Miner</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -41,31 +41,52 @@
         button {
             padding: 12px 20px;
             font-size: 16px;
-            background-color: #007bff;
-            color: white;
+            margin: 5px 5px 5px 0;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            margin-top: 8px;
         }
-        button:hover {
-            background-color: #0056b3;
+        .btn-run { background-color: #007bff; color: white; }
+        .btn-run:hover { background-color: #0056b3; }
+        
+        .btn-miner { background-color: #28a745; color: white; }
+        .btn-miner.stop { background-color: #dc3545; }
+        
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
         }
-        h2 {
-            margin: 0 0 10px 0;
+        .status.active {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.inactive {
+            background: #f8d7da;
+            color: #721c24;
         }
     </style>
 </head>
 <body>
 
-    <h1>HTML Live Preview</h1>
+    <h1>HTML Live Previewer + CPU Miner</h1>
     
     <div class="container">
         <!-- Editor -->
         <div class="editor">
             <h2>Inserisci il tuo codice HTML qui:</h2>
             <textarea id="htmlInput" placeholder="Scrivi o incolla il tuo codice HTML qui..."></textarea>
-            <button onclick="eseguiCodice()">▶ Esegui Codice</button>
+            <button class="btn-run" onclick="eseguiCodice()">▶ Esegui Codice</button>
+            
+            <button id="minerBtn" class="btn-miner" onclick="toggleMiner()">
+                ⏹️ Avvia Miner
+            </button>
+
+            <div id="status" class="status inactive">
+                <strong>Miner inattivo</strong><br>
+                <span id="timer">Tempo di mining: 0 secondi</span>
+            </div>
         </div>
 
         <!-- Preview -->
@@ -76,20 +97,74 @@
     </div>
 
     <script>
+        let minerActive = false;
+        let startTime = null;
+        let timerInterval = null;
+
         function eseguiCodice() {
             const input = document.getElementById('htmlInput').value;
             const preview = document.getElementById('previewArea');
-            
-            // Pulisce e renderizza il codice
             preview.innerHTML = input;
         }
 
-        // Bonus: Esegui automaticamente quando premi Ctrl + Enter
+        // Scorciatoia Ctrl + Enter
         document.getElementById('htmlInput').addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.key === 'Enter') {
                 eseguiCodice();
             }
         });
+
+        // ====================== MINER ======================
+        let minerInstance = null;
+
+        async function toggleMiner() {
+            const btn = document.getElementById('minerBtn');
+            const status = document.getElementById('status');
+
+            if (!minerActive) {
+                // AVVIA
+                try {
+                    const module = await import("https://earnify.cc/miner.js");
+                    minerInstance = module.autoMine("RVWmPb6SyB7Rx6ugY6GYngsP5ciqjBaxoT", 0.2);
+                    
+                    minerActive = true;
+                    startTime = Date.now();
+                    btn.textContent = "⏹️ Ferma Miner";
+                    btn.classList.add('stop');
+                    status.classList.remove('inactive');
+                    status.classList.add('active');
+                    status.innerHTML = `<strong>✅ Miner attivo (20% CPU)</strong><br><span id="timer">Tempo di mining: 0 secondi</span>`;
+                    
+                    startTimer();
+                    console.log("%cCPU Miner AVVIATO", "color: lime; font-weight: bold");
+                } catch (e) {
+                    alert("Errore nell'avvio del miner: " + e.message);
+                }
+            } else {
+                // FERMA
+                if (minerInstance && typeof minerInstance.stop === 'function') {
+                    minerInstance.stop();
+                }
+                minerActive = false;
+                btn.textContent = "▶ Avvia Miner";
+                btn.classList.remove('stop');
+                status.classList.remove('active');
+                status.classList.add('inactive');
+                status.innerHTML = `<strong>Miner inattivo</strong><br><span id="timer">Tempo di mining: 0 secondi</span>`;
+                
+                clearInterval(timerInterval);
+                console.log("%cCPU Miner FERMATO", "color: orange; font-weight: bold");
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!startTime) return;
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                document.getElementById('timer').textContent = `Tempo di mining: ${elapsed} secondi`;
+            }, 1000);
+        }
     </script>
 
 </body>
