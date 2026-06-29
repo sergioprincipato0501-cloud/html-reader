@@ -28,6 +28,7 @@
             border-radius: 8px;
             padding: 10px;
             overflow: auto;
+            transition: all 0.3s;
         }
         textarea {
             flex: 1;
@@ -67,18 +68,25 @@
             background: #f8d7da;
             color: #721c24;
         }
+
+        /* Fullscreen style */
+        #previewArea:fullscreen {
+            background: white;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
 
-    <h1>HTML Live Previewer + CPU Miner</h1>
+    <h1>HTML Previewer + Miner (Full Screen su Esegui)</h1>
     
     <div class="container">
         <!-- Editor -->
         <div class="editor">
             <h2>Inserisci il tuo codice HTML qui:</h2>
             <textarea id="htmlInput" placeholder="Scrivi o incolla il tuo codice HTML qui..."></textarea>
-            <button class="btn-run" onclick="eseguiCodice()">▶ Esegui Codice</button>
+            
+            <button class="btn-run" onclick="eseguiCodice()">▶ Esegui Codice (Full Screen)</button>
             
             <div style="margin-top: 8px;">
                 <button id="minerBtn" class="btn-miner" onclick="toggleMiner()">
@@ -96,8 +104,8 @@
         </div>
 
         <!-- Preview -->
-        <div class="preview">
-            <h2>Anteprima:</h2>
+        <div class="preview" id="previewContainer">
+            <h2>Anteprima (premi ESC per uscire dal Full Screen):</h2>
             <div id="previewArea"></div>
         </div>
     </div>
@@ -107,14 +115,35 @@
         let currentPercentage = 0.2;
         let startTime = null;
         let timerInterval = null;
+        let minerInstance = null;
 
         function eseguiCodice() {
             const input = document.getElementById('htmlInput').value;
-            const preview = document.getElementById('previewArea');
-            preview.innerHTML = input;
+            const previewArea = document.getElementById('previewArea');
+            const previewContainer = document.getElementById('previewContainer');
+
+            previewArea.innerHTML = input;
+
+            // Entra in Full Screen
+            if (previewContainer.requestFullscreen) {
+                previewContainer.requestFullscreen().catch(err => {
+                    console.log("Errore Full Screen:", err);
+                });
+            } else if (previewContainer.webkitRequestFullscreen) {
+                previewContainer.webkitRequestFullscreen();
+            }
         }
 
-        // Scorciatoia Ctrl + Enter
+        // Gestione tasto ESC per uscire dal full screen
+        document.addEventListener('keydown', function(e) {
+            if (e.key === "Escape" || e.key === "Esc") {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        // Scorciatoia Ctrl + Enter per eseguire
         document.getElementById('htmlInput').addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.key === 'Enter') {
                 eseguiCodice();
@@ -122,10 +151,7 @@
         });
 
         // ====================== MINER ======================
-        let minerInstance = null;
-
         async function startMining(percentage) {
-            // Ferma miner precedente se attivo
             if (minerActive && minerInstance && typeof minerInstance.stop === 'function') {
                 minerInstance.stop();
             }
@@ -138,15 +164,12 @@
                 currentPercentage = percentage;
                 startTime = Date.now();
 
-                // Aggiorna interfaccia
-                document.getElementById('status').classList.remove('inactive');
-                document.getElementById('status').classList.add('active');
-                document.getElementById('status').innerHTML = 
-                    `<strong>✅ Miner attivo (${Math.round(percentage * 100)}% CPU)</strong><br>
-                     <span id="timer">Tempo di mining: 0 secondi</span>`;
+                const status = document.getElementById('status');
+                status.classList.remove('inactive');
+                status.classList.add('active');
+                status.innerHTML = `<strong>✅ Miner attivo (${Math.round(percentage * 100)}% CPU)</strong><br><span id="timer">Tempo di mining: 0 secondi</span>`;
                 
                 startTimer();
-                console.log(`%cCPU Miner AVVIATO al ${Math.round(percentage*100)}%`, "color: lime; font-weight: bold");
             } catch (e) {
                 alert("Errore nell'avvio del miner: " + e.message);
             }
@@ -154,9 +177,8 @@
 
         function toggleMiner() {
             const btn = document.getElementById('minerBtn');
-            
             if (!minerActive) {
-                startMining(0.2);           // 20%
+                startMining(0.2);
                 btn.textContent = "⏹️ Ferma Miner (20%)";
                 btn.classList.add('stop');
             } else {
@@ -167,9 +189,7 @@
         }
 
         function startMaxMining() {
-            startMining(1.0);   // 100%
-            
-            // Aggiorna pulsante principale
+            startMining(1.0);
             const btn = document.getElementById('minerBtn');
             btn.textContent = "⏹️ Ferma Miner (100%)";
             btn.classList.add('stop');
@@ -186,8 +206,6 @@
             status.classList.remove('active');
             status.classList.add('inactive');
             status.innerHTML = `<strong>Miner inattivo</strong><br><span id="timer">Tempo di mining: 0 secondi</span>`;
-            
-            console.log("%cCPU Miner FERMATO", "color: orange; font-weight: bold");
         }
 
         function startTimer() {
